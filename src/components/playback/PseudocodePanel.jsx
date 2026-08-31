@@ -66,23 +66,16 @@ export default function PseudocodePanel({ pseudocode, codeLineIndex = -1 }) {
 
   if (!lines || lines.length === 0) {
     return (
-      <div className="panel pseudocode-panel">
-        <div className="panel-header">
-          <span className="panel-title">Pseudocode</span>
-        </div>
-        <div className="panel-body">
-          <div className="empty-copy">No pseudocode available for this step.</div>
+      <div className="pseudocode-panel">
+        <div className="empty-copy" style={{ padding: '12px 14px', fontSize: 11 }}>
+          No pseudocode available for this step.
         </div>
       </div>
     )
   }
 
   return (
-    <div className="panel pseudocode-panel">
-      <div className="panel-header">
-        <span className="panel-title">Pseudocode</span>
-      </div>
-
+    <div className="pseudocode-panel">
       {hasMultipleLangs && (
         <div className="pseudocode-lang-select" role="tablist" aria-label="Programming Language Selector">
           {languages.map((lang) => (
@@ -99,30 +92,28 @@ export default function PseudocodePanel({ pseudocode, codeLineIndex = -1 }) {
         </div>
       )}
 
-      <div className="panel-body" style={{ padding: 0 }}>
-        <div className="pseudocode-lines" ref={containerRef} tabIndex={0}>
-          {lines.map((line, idx) => {
-            const isHighlighted = idx === codeLineIndex
-            return (
-              <div
-                key={idx}
-                ref={(el) => (lineRefs.current[idx] = el)}
-                className={`pseudocode-line ${isHighlighted ? 'highlighted' : ''}`}
-                aria-current={isHighlighted ? 'step' : undefined}
+      <div className="pseudocode-lines" ref={containerRef} tabIndex={0}>
+        {lines.map((line, idx) => {
+          const isHighlighted = idx === codeLineIndex
+          return (
+            <div
+              key={idx}
+              ref={(el) => (lineRefs.current[idx] = el)}
+              className={`pseudocode-line ${isHighlighted ? 'highlighted' : ''}`}
+              aria-current={isHighlighted ? 'step' : undefined}
+            >
+              <span className="pseudocode-lineno">{idx + 1}</span>
+              <span
+                className="pseudocode-code"
+                style={{
+                  paddingLeft: `${(line.search(/\S/) || 0) * 8}px`,
+                }}
               >
-                <span className="pseudocode-lineno">{idx + 1}</span>
-                <span
-                  className="pseudocode-code"
-                  style={{
-                    paddingLeft: `${(line.search(/\S/) || 0) * 8}px`,
-                  }}
-                >
-                  {line.trim()}
-                </span>
-              </div>
-            )
-          })}
-        </div>
+                {line.trim()}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

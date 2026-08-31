@@ -204,100 +204,108 @@ export default function ListsVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Main Rendering Panel */}
-          <div className="panel" style={{ flex: 1, minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-            <div className="panel-header">
-              <span className="panel-title">Structure Visualizer</span>
-            </div>
-            <div className="panel-body" style={{ padding: algoId === 'linkedList' ? 0 : '24px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {algoId === 'linkedList' ? (
-                <TreeRenderer
-                  root={currentTreeRoot}
+        {/* ── LEFT: List Canvas & Playback ─────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ position: 'relative' }}>
+            {algoId === 'linkedList' ? (
+              <TreeRenderer
+                root={currentTreeRoot}
+                highlighted={highlighted}
+                activeId={highlighted.length > 0 ? highlighted[0] : null}
+                foundId={null}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', padding: 16, border: '1px solid var(--border-subtle)' }}>
+                <ArrayRenderer
+                  values={currentArray}
                   highlighted={highlighted}
-                  activeId={highlighted.length > 0 ? highlighted[0] : null}
-                  foundId={null}
+                  compared={
+                    algoId === 'queue'
+                      ? [currentHead, currentTail].filter((x) => x !== null)
+                      : highlighted
+                  }
+                  sorted={[]}
+                  pivot={null}
                 />
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%' }}>
-                  <ArrayRenderer
-                    values={currentArray}
-                    highlighted={highlighted}
-                    compared={
-                      algoId === 'queue'
-                        ? [currentHead, currentTail].filter((x) => x !== null)
-                        : highlighted
-                    }
-                    sorted={[]}
-                    pivot={null}
-                  />
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'INSERT_NODE' && '➕ '}
-                {currentFrame.action === 'POP' && '📤 '}
-                {currentFrame.action === 'PUSH' && '📥 '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'INSERT_NODE' && '➕ '}
+                  {currentFrame.action === 'POP' && '📤 '}
+                  {currentFrame.action === 'PUSH' && '📥 '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Select an operation and click to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Operations</span>
-            </div>
-            <div className="panel-body">
-              {['pop', 'dequeue'].includes(opMode) ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div className="input-label">Remove Element</div>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSubmit}
-                    disabled={isPlaying || currentArray.length === 0}
-                  >
-                    🚀 Trigger Remove ({opMode.toUpperCase()})
-                  </button>
-                </div>
-              ) : (
-                <InputPanel
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSubmit={handleSubmit}
-                  placeholder="Enter element value (e.g. 15)"
-                  label="ELEMENT VALUE"
-                  buttonText={opMode.toUpperCase()}
-                  presets={presets.lists}
-                  disabled={isPlaying}
-                />
-              )}
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            {['pop', 'dequeue'].includes(opMode) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                  disabled={isPlaying || currentArray.length === 0}
+                  style={{ width: '100%' }}
+                >
+                  🚀 Trigger Remove ({opMode.toUpperCase()})
+                </button>
+              </div>
+            ) : (
+              <InputPanel
+                value={inputValue}
+                onChange={setInputValue}
+                onSubmit={handleSubmit}
+                placeholder="Enter element value (e.g. 15)"
+                label="ELEMENT VALUE"
+                buttonText={opMode.toUpperCase()}
+                presets={presets.lists}
+                disabled={isPlaying}
+              />
+            )}
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={{ javascript: activePseudocode }}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={{ javascript: activePseudocode }}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={complexities[algoId]} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities[algoId]} />
+          </div>
         </div>
       </div>
     </div>

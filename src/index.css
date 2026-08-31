@@ -572,10 +572,9 @@ code, pre { font-family: var(--font-mono); }
 .module-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-rows: 1fr auto;
-  gap: 24px;
-  padding: 24px 32px 32px;
+  /* Left: canvas area | Right: info panel fixed at 360px */
+  grid-template-columns: 1fr 360px;
+  gap: 0;
   overflow: hidden;
   min-height: 0;
 }
@@ -588,10 +587,11 @@ code, pre { font-family: var(--font-mono); }
    CARDS / PANELS
    ══════════════════════════════════════════════════════════════ */
 
+/* Generic panel: surface card with border */
 .panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -601,23 +601,23 @@ code, pre { font-family: var(--font-mono); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 8px 14px;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
 
 .panel-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
 }
 
 .panel-body {
   flex: 1;
   overflow: auto;
-  padding: 16px 18px;
+  padding: 12px 14px;
   min-height: 0;
 }
 
@@ -764,23 +764,190 @@ code, pre { font-family: var(--font-mono); }
 .speed-btn.active { color: var(--accent); background: var(--accent-dim); border-color: rgba(59,130,246,0.25); }
 
 /* ══════════════════════════════════════════════════════════════
-   PSEUDOCODE PANEL
+   INFO PANEL (Right sidebar in all visualizers)
+   This column uses display:flex column with no outer scroll.
+   Each section has its own controlled height.
    ══════════════════════════════════════════════════════════════ */
 
-.pseudocode-panel { font-family: var(--font-mono); }
+.viz-info-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-left: 1px solid var(--border-subtle);
+  overflow: hidden;   /* the panel itself never scrolls */
+  min-height: 0;
+}
+
+/* Execution controls at the top — compact, never scrolls */
+.viz-controls-section {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.viz-controls-section .section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Pseudocode — takes the majority of vertical space */
+.viz-code-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 0;   /* allow shrinking in flex context */
+}
+
+.viz-code-section .section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 8px 14px 0;
+  flex-shrink: 0;
+}
+
+/* State inspector — compact, ~2-4 rows of key-value */
+.viz-state-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 10px 14px;
+}
+
+.viz-state-section .section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* Complexity — one compact row at the bottom */
+.viz-complexity-section {
+  flex-shrink: 0;
+  padding: 10px 14px;
+}
+
+.viz-complexity-section .section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* Compact complexity row */
+.complexity-compact-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.complexity-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  min-width: 0;
+}
+
+.complexity-chip-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.complexity-chip-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+}
+
+.complexity-chip-value.best  { color: #34d399; }
+.complexity-chip-value.avg   { color: #fbbf24; }
+.complexity-chip-value.worst { color: #f87171; }
+.complexity-chip-value.space { color: #a78bfa; }
+
+/* Main visualization area: left column */
+.viz-canvas-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Canvas fills all available space */
+.viz-canvas-hero {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  padding: 16px 20px 0;
+}
+
+/* Playback docked directly below canvas */
+.viz-playback-section {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Step explanation docked below playback */
+.viz-step-section {
+  flex-shrink: 0;
+  padding: 8px 20px 12px;
+  border-top: 1px solid var(--border-subtle);
+  min-height: 44px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PSEUDOCODE PANEL (inside viz-code-section)
+   ══════════════════════════════════════════════════════════════ */
+
+.pseudocode-panel {
+  font-family: var(--font-mono);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 
 .pseudocode-lang-select {
   display: flex;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 6px 14px;
   border-bottom: 1px solid var(--border-subtle);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  overflow-x: auto;
 }
 
 .pseudocode-lang-btn {
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -788,18 +955,23 @@ code, pre { font-family: var(--font-mono); }
   background: transparent;
   color: var(--text-muted);
   transition: all var(--dur-fast) var(--ease);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .pseudocode-lang-btn:hover  { color: var(--text-primary); background: var(--bg-elevated); }
 .pseudocode-lang-btn.active { color: var(--accent); background: var(--accent-dim); border-color: rgba(59,130,246,0.2); }
 
 .pseudocode-lines {
-  padding: 12px 0;
+  /* No max-height — takes all available flex space */
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0 8px;
   counter-reset: line;
-  font-size: 12.5px;
-  line-height: 1.8;
-  overflow: auto;
-  max-height: 320px;
+  font-size: 12px;
+  line-height: 1.65;
+  min-height: 0;
 }
 
 .pseudocode-line {
@@ -835,37 +1007,36 @@ code, pre { font-family: var(--font-mono); }
 .pseudocode-code { color: var(--text-primary); }
 
 /* ══════════════════════════════════════════════════════════════
-   COMPLEXITY CARD
+   COMPLEXITY CARD (legacy styles kept for DatabaseVisualizer)
    ══════════════════════════════════════════════════════════════ */
 
 .complexity-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .complexity-item {
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 12px;
+  border-radius: var(--radius-sm);
+  padding: 8px;
 }
 
 .complexity-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .complexity-value {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.02em;
 }
 
 .complexity-value.best    { color: #34d399; }
@@ -874,72 +1045,104 @@ code, pre { font-family: var(--font-mono); }
 .complexity-value.space   { color: #a78bfa; }
 
 .complexity-explanation {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  padding: 12px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* ══════════════════════════════════════════════════════════════
    STATE INSPECTOR
    ══════════════════════════════════════════════════════════════ */
 
-.inspector-section {
-  margin-bottom: 14px;
-}
-
-.inspector-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+.state-inspector-content {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
 }
 
-.inspector-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-subtle);
-}
-
-.inspector-metric {
+.inspector-metrics-compact {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inspector-metric-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 4px;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
 }
 
-.inspector-metric:last-child {
-  border-bottom: none;
+.inspector-metric-chip-key {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
-.inspector-metric-key   { font-size: 12px; color: var(--text-secondary); }
-.inspector-metric-value { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); }
+.inspector-metric-chip-val {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
 
-.inspector-array {
+.inspector-vars-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inspector-var-compact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.inspector-var-key {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.inspector-var-single-val {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inspector-token-list {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
 .inspector-token {
-  padding: 3px 8px;
+  padding: 1px 6px;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   font-family: var(--font-mono);
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
+}
+
+.inspector-token-empty {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .inspector-token.highlight { background: var(--accent-dim); color: var(--accent); border-color: rgba(59,130,246,0.25); }
@@ -1094,10 +1297,10 @@ code, pre { font-family: var(--font-mono); }
   min-height: 4px;
 }
 
-.array-bar.compared { background: var(--node-visited); box-shadow: 0 0 10px rgba(245,158,11,0.4); }
-.array-bar.active   { background: var(--node-active);  box-shadow: 0 0 14px rgba(251,113,133,0.5); }
+.array-bar.compared { background: var(--node-visited); }
+.array-bar.active   { background: var(--node-active); }
 .array-bar.sorted   { background: var(--node-sorted); }
-.array-bar.pivot    { background: var(--node-found);   box-shadow: 0 0 12px rgba(167,139,250,0.4); }
+.array-bar.pivot    { background: var(--node-found); }
 
 .array-bar-index {
   font-size: 10px;
@@ -1397,7 +1600,52 @@ code, pre { font-family: var(--font-mono); }
   .sidebar-item { justify-content: center; padding: 10px; }
   .sidebar-item-icon { margin: 0; }
 
-  .module-body { grid-template-columns: 1fr; }
+  /* On tablet/mobile, stack the 2-col workspace vertically */
+  .module-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .viz-info-panel {
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
+    overflow: visible;
+  }
+
+  .viz-code-section {
+    min-height: 280px;
+  }
+
+  .viz-state-section {
+    max-height: none;
+    overflow: visible;
+  }
+
   .dashboard { padding: 20px; }
   .dashboard-title { font-size: 28px; }
+}
+
+@media (max-width: 640px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { display: none; }
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "main";
+  }
+
+  .module-header { padding: 12px 16px 0; }
+  .module-tabs { padding: 0 16px; }
+
+  .viz-canvas-hero { padding: 10px 12px 0; }
+  .viz-playback-section { padding: 8px 12px; }
+  .viz-step-section { padding: 6px 12px 10px; }
+  .viz-controls-section,
+  .viz-code-section .section-label,
+  .viz-state-section .section-label,
+  .viz-complexity-section .section-label { padding-left: 12px; padding-right: 12px; }
 }

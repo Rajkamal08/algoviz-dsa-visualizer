@@ -177,76 +177,87 @@ export default function HashingVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        {/* Canvas */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="panel" style={{ flex: 1 }}>
-            <div className="panel-header">
-              <span className="panel-title">Hash Table (size {currentFrame?.stateSnapshot?.tableSize ?? defaultSize})</span>
-            </div>
-            <div className="panel-body" style={{ overflowY: 'auto', maxHeight: 420 }}>
-              {isChain
-                ? currentTable.map((bucket, idx) => (
-                    <BucketRow key={idx} index={idx} cells={bucket} isChain highlighted={highlighted} />
-                  ))
-                : currentTable.map((val, idx) => (
-                    <BucketRow key={idx} index={idx} cells={val} isChain={false} highlighted={highlighted} />
-                  ))
-              }
-            </div>
+        {/* ── LEFT: Hash Table & Playback ─────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ overflowY: 'auto' }}>
+            {isChain
+              ? currentTable.map((bucket, idx) => (
+                  <BucketRow key={idx} index={idx} cells={bucket} isChain highlighted={highlighted} />
+                ))
+              : currentTable.map((val, idx) => (
+                  <BucketRow key={idx} index={idx} cells={val} isChain={false} highlighted={highlighted} />
+                ))
+            }
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
+
+          <div className="viz-step-section">
+            {currentFrame ? (
               <div className="step-bar-desc">
                 {currentFrame.action === 'INSERT_NODE' && '📌 '}
                 {currentFrame.action === 'COMPARE'     && '🔍 '}
                 {currentFrame.description}
               </div>
-            </div>
-          )}
-
-          <PlaybackControls playback={playback} />
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Enter keys and table size to build hash table.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header"><span className="panel-title">Inputs</span></div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div>
-                <div className="input-label">KEYS (comma-separated)</div>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>KEYS</span>
                 <input className="input-field" type="text" value={inputValue}
+                  style={{ padding: '6px 10px', fontSize: 13, marginTop: 2 }}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="e.g. 5, 14, 21, 8" disabled={isPlaying} />
               </div>
-              <div>
-                <div className="input-label">TABLE SIZE</div>
-                <input className="input-field" type="number" value={tableSizeInput}
-                  onChange={(e) => setTableSizeInput(e.target.value)}
-                  placeholder="e.g. 7" disabled={isPlaying} />
-              </div>
-              <button className="btn btn-primary" onClick={handleSubmit} disabled={isPlaying}>
-                BUILD HASH TABLE
-              </button>
-              <div>
-                <div className="input-label">PRESETS</div>
-                <div className="preset-row">
-                  {presets.hashing.map((p) => (
-                    <button key={p.label} type="button" className="preset-btn"
-                      onClick={() => handleLoadPreset(p.value)} disabled={isPlaying}>
-                      {p.label}
-                    </button>
-                  ))}
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>SIZE</span>
+                  <input className="input-field" type="number" value={tableSizeInput}
+                    style={{ padding: '6px 10px', fontSize: 13, marginTop: 2 }}
+                    onChange={(e) => setTableSizeInput(e.target.value)}
+                    placeholder="e.g. 7" disabled={isPlaying} />
                 </div>
+                <button className="btn btn-primary btn-sm" onClick={handleSubmit} disabled={isPlaying} style={{ marginTop: 14 }}>
+                  BUILD
+                </button>
+              </div>
+              <div className="preset-row">
+                {presets.hashing.map((p) => (
+                  <button key={p.label} type="button" className="preset-btn"
+                    onClick={() => handleLoadPreset(p.value)} disabled={isPlaying}>
+                    {p.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          <StateInspector metrics={currentFrame?.metrics} stateSnapshot={currentFrame?.stateSnapshot} />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel pseudocode={hashingPseudocode[algoId]} codeLineIndex={currentFrame?.codeLineIndex ?? -1} />
+          </div>
 
-          <PseudocodePanel pseudocode={hashingPseudocode[algoId]} codeLineIndex={currentFrame?.codeLineIndex ?? -1} />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector metrics={currentFrame?.metrics} stateSnapshot={currentFrame?.stateSnapshot} />
+          </div>
 
-          <ComplexityCard complexity={complexities[algoId]} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities[algoId]} />
+          </div>
         </div>
       </div>
     </div>

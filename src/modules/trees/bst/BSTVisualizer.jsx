@@ -113,81 +113,110 @@ export default function BSTVisualizer({ onStatusChange }) {
 
       {/* Main Layout Grid */}
       <div className="module-body">
-        {/* Visual Canvas Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="panel" style={{ flex: 1 }}>
-            <div className="panel-header">
-              <span className="panel-title">Tree Canvas</span>
-            </div>
-            <div className="panel-body" style={{ padding: 0, position: 'relative' }}>
-              <TreeRenderer
-                root={currentTreeRoot}
-                highlighted={currentFrame?.highlightedNodes || []}
-                activeId={activeNodeId}
-                foundId={isFound ? activeNodeId : null}
-              />
-            </div>
+
+        {/* ── LEFT: Visualization Canvas ─────────────────────────── */}
+        <div className="viz-canvas-area">
+          {/* Canvas hero */}
+          <div className="viz-canvas-hero">
+            <TreeRenderer
+              root={currentTreeRoot}
+              highlighted={currentFrame?.highlightedNodes || []}
+              activeId={activeNodeId}
+              foundId={isFound ? activeNodeId : null}
+            />
           </div>
 
-          {/* Action Explainer bar */}
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {isFound && '✨ '}
-                {isNotFound && '⚠️ '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          {/* Playback docked below canvas */}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          {/* Media Playback bar */}
-          <PlaybackControls playback={playback} />
+          {/* Step explanation docked below playback */}
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {isFound && '✨ '}
+                  {isNotFound && '⚠️ '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Enter a value and run an operation to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Info & Code Sidebar Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          {/* Inputs */}
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Execution Controls</span>
-            </div>
-            <div className="panel-body">
-              <InputPanel
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSubmit}
-                placeholder={
-                  opMode === 'insert'
-                    ? 'Enter key to insert (e.g. 45)'
-                    : opMode === 'search'
-                    ? 'Enter key to search (e.g. 70)'
-                    : 'Enter key to delete (e.g. 30)'
-                }
-                label={opMode.toUpperCase()}
-                buttonText={opMode.toUpperCase()}
-                presets={opMode === 'insert' ? bstPresets : []}
-                disabled={isPlaying}
-              />
+        {/* ── RIGHT: Info Panel ──────────────────────────────────── */}
+        <div className="viz-info-panel">
+
+          {/* 1. Execution Controls — always at top */}
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <InputPanel
+              value={inputValue}
+              onChange={setInputValue}
+              onSubmit={handleSubmit}
+              placeholder={
+                opMode === 'insert'
+                  ? 'Enter key to insert (e.g. 45)'
+                  : opMode === 'search'
+                  ? 'Enter key to search (e.g. 70)'
+                  : 'Enter key to delete (e.g. 30)'
+              }
+              label={opMode.toUpperCase()}
+              buttonText={opMode.toUpperCase()}
+              presets={opMode === 'insert' ? bstPresets : []}
+              disabled={isPlaying}
+            />
+          </div>
+
+          {/* 2. Pseudocode — fills remaining space */}
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={bstPseudocode[opMode]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
+
+          {/* 3. State Inspector — compact */}
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
+
+          {/* 4. Complexity — one compact row */}
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <div className="complexity-compact-row">
+              <div className="complexity-chip" title="Best case time complexity">
+                <span className="complexity-chip-label">Best</span>
+                <span className="complexity-chip-value best">{bstComplexities.best}</span>
+              </div>
+              <div className="complexity-chip" title="Average case time complexity">
+                <span className="complexity-chip-label">Avg</span>
+                <span className="complexity-chip-value avg">{bstComplexities.avg}</span>
+              </div>
+              <div className="complexity-chip" title="Worst case time complexity">
+                <span className="complexity-chip-label">Worst</span>
+                <span className="complexity-chip-value worst">{bstComplexities.worst}</span>
+              </div>
+              <div className="complexity-chip" title="Space complexity">
+                <span className="complexity-chip-label">Space</span>
+                <span className="complexity-chip-value space">{bstComplexities.space}</span>
+              </div>
             </div>
           </div>
 
-          {/* State Variables Inspector */}
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
-
-          {/* Code panel */}
-          <PseudocodePanel
-            pseudocode={bstPseudocode[opMode]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
-
-          {/* Complexity Cards */}
-          <ComplexityCard complexity={bstComplexities} />
         </div>
       </div>
     </div>

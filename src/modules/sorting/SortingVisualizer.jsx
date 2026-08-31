@@ -138,70 +138,78 @@ export default function SortingVisualizer({ onStatusChange, initialAlgoId = 'bub
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Main Array Canvas Panel */}
-          <div className="panel" style={{ flex: 1, minHeight: 300, display: 'flex', flexDirection: 'column' }}>
-            <div className="panel-header">
-              <span className="panel-title">Array State Visualizer</span>
-            </div>
-            <div className="panel-body" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-              <ArrayRenderer
-                values={currentArray}
-                highlighted={highlighted}
-                compared={compared}
-                sorted={sorted}
-                pivot={pivot}
-              />
-            </div>
+        {/* ── LEFT: Array Canvas & Playback ─────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', margin: '16px 20px 0', border: '1px solid var(--border-subtle)' }}>
+            <ArrayRenderer
+              values={currentArray}
+              highlighted={highlighted}
+              compared={compared}
+              sorted={sorted}
+              pivot={pivot}
+            />
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'SWAP' && '🔄 '}
-                {currentFrame.action === 'MARK_SORTED' && '✨ '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'SWAP' && '🔄 '}
+                  {currentFrame.action === 'MARK_SORTED' && '✨ '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Click Run Sort or load a preset to begin sorting.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Sorting Inputs</span>
-            </div>
-            <div className="panel-body">
-              <InputPanel
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSubmit}
-                placeholder="Enter comma-separated values (e.g. 12, 5, 8, 30)"
-                label="ARRAY DATA"
-                buttonText="RUN SORT"
-                presets={presets.sorting}
-                disabled={isPlaying}
-              />
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <InputPanel
+              value={inputValue}
+              onChange={setInputValue}
+              onSubmit={handleSubmit}
+              placeholder="Enter comma-separated values (e.g. 12, 5, 8, 30)"
+              label="ARRAY DATA"
+              buttonText="RUN SORT"
+              presets={presets.sorting}
+              disabled={isPlaying}
+            />
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={sortingPseudocode[algoId]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={sortingPseudocode[algoId]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={complexities[algoId]} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities[algoId]} />
+          </div>
         </div>
       </div>
     </div>

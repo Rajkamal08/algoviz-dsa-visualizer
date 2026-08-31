@@ -159,53 +159,53 @@ export default function GraphVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Main Graph Canvas Panel */}
-          <div className="panel" style={{ flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column' }}>
-            <div className="panel-header">
-              <span className="panel-title">Interactive Graph Renderer</span>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Drag nodes to rearrange</div>
-            </div>
-            <div className="panel-body" style={{ padding: 0, position: 'relative' }}>
-              <GraphRenderer
-                nodes={currentNodes}
-                edges={currentEdges}
-                active={active}
-                visited={visited}
-                frontier={frontier}
-                settled={settled}
-              />
-            </div>
+        {/* ── LEFT: Graph Canvas & Playback ─────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ position: 'relative' }}>
+            <GraphRenderer
+              nodes={currentNodes}
+              edges={currentEdges}
+              active={active}
+              visited={visited}
+              frontier={frontier}
+              settled={settled}
+            />
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'VISIT_NODE' && '📍 '}
-                {currentFrame.action === 'UPDATE_DIST' && '✨ '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'VISIT_NODE' && '📍 '}
+                  {currentFrame.action === 'UPDATE_DIST' && '✨ '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Select a start vertex or algorithm tab to run traversal.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          {/* Quick presets & Start Node Selection */}
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Traversal Config</span>
-            </div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <div className="input-label">Start Vertex</div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Traversal & Config</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>START:</span>
                 <select
                   className="input-field"
+                  style={{ flex: 1, padding: '4px 8px', fontSize: 12 }}
                   value={startNodeId}
                   onChange={(e) => {
                     setStartNodeId(e.target.value)
@@ -215,113 +215,48 @@ export default function GraphVisualizer({ onStatusChange }) {
                 >
                   {nodes.map((n) => (
                     <option key={n.id} value={n.id}>
-                      {n.id}
+                      Vertex {n.id}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <div className="input-label">Load Presets</div>
-                <div className="preset-row">
-                  {presets.graphs.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      className="preset-btn"
-                      onClick={() => handleLoadPreset(p.value)}
-                      disabled={isPlaying}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Graph Builder */}
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Add Node or Edge</span>
-            </div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Add node */}
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  className="input-field"
-                  style={{ flex: 1, textTransform: 'uppercase' }}
-                  type="text"
-                  placeholder="Node label (e.g. F)"
-                  value={newNodeId}
-                  onChange={(e) => setNewNodeId(e.target.value)}
-                  disabled={isPlaying}
-                />
-                <button className="btn btn-secondary btn-sm" onClick={handleAddNode} disabled={isPlaying}>
-                  + Node
-                </button>
-              </div>
-
-              {/* Add edge */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <input
-                    className="input-field"
-                    style={{ flex: 1, textTransform: 'uppercase' }}
-                    type="text"
-                    placeholder="From"
-                    value={newEdgeFrom}
-                    onChange={(e) => setNewEdgeFrom(e.target.value)}
+              <div className="preset-row">
+                {presets.graphs.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => handleLoadPreset(p.value)}
                     disabled={isPlaying}
-                  />
-                  <input
-                    className="input-field"
-                    style={{ flex: 1, textTransform: 'uppercase' }}
-                    type="text"
-                    placeholder="To"
-                    value={newEdgeTo}
-                    onChange={(e) => setNewEdgeTo(e.target.value)}
-                    disabled={isPlaying}
-                  />
-                  <input
-                    className="input-field"
-                    style={{ flex: 1 }}
-                    type="number"
-                    placeholder="W"
-                    value={newEdgeWeight}
-                    onChange={(e) => setNewEdgeWeight(e.target.value)}
-                    disabled={isPlaying}
-                  />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <input
-                      type="checkbox"
-                      checked={newEdgeDirected}
-                      onChange={(e) => setNewEdgeDirected(e.target.checked)}
-                      disabled={isPlaying}
-                    />
-                    Directed Connection
-                  </label>
-                  <button className="btn btn-primary btn-sm" onClick={handleAddEdge} disabled={isPlaying}>
-                    + Edge
+                  >
+                    {p.label}
                   </button>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={graphsPseudocode[algoId]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={graphsPseudocode[algoId]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={complexities[algoId]} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities[algoId]} />
+          </div>
         </div>
       </div>
     </div>

@@ -124,91 +124,97 @@ export default function DPVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Main DP rendering Canvas */}
-          <div className="panel" style={{ flex: 1, minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-            <div className="panel-header">
-              <span className="panel-title">
-                {algoId === 'fibonacci' ? '1D DP Memoization Cache' : '2D LCS Table Grid'}
-              </span>
-            </div>
-            <div className="panel-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {algoId === 'fibonacci' ? (
-                <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%' }}>
-                  <ArrayRenderer
-                    values={currentArray}
-                    highlighted={currentFrame?.highlightedNodes || []}
-                    compared={currentFrame?.highlightedNodes || []}
-                    sorted={[]}
-                    pivot={null}
-                  />
-                </div>
-              ) : (
-                <TableRenderer
-                  data={currentTable}
-                  rowHeaders={rowHeaders}
-                  colHeaders={colHeaders}
-                  activeCells={activeCells}
-                  cacheHitCells={cacheHitCells}
-                  filledCells={filledCells}
+        {/* ── LEFT: DP Canvas & Playback ───────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {algoId === 'fibonacci' ? (
+              <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', padding: 16, border: '1px solid var(--border-subtle)' }}>
+                <ArrayRenderer
+                  values={currentArray}
+                  highlighted={currentFrame?.highlightedNodes || []}
+                  compared={currentFrame?.highlightedNodes || []}
+                  sorted={[]}
+                  pivot={null}
                 />
-              )}
-            </div>
+              </div>
+            ) : (
+              <TableRenderer
+                data={currentTable}
+                rowHeaders={rowHeaders}
+                colHeaders={colHeaders}
+                activeCells={activeCells}
+                cacheHitCells={cacheHitCells}
+                filledCells={filledCells}
+              />
+            )}
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'COMPARE' && '🔍 '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'COMPARE' && '🔍 '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Enter DP parameters or choose a preset to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">DP Configurations</span>
-            </div>
-            <div className="panel-body">
-              <InputPanel
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSubmit}
-                placeholder={
-                  algoId === 'fibonacci'
-                    ? 'Enter N index (e.g. 10)'
-                    : 'Enter comma-separated words (e.g. apple, ape)'
-                }
-                label="DP PARAMETERS"
-                buttonText="LOAD VALUES"
-                presets={presets.dp.filter((p) => {
-                  if (algoId === 'fibonacci') return p.label.includes('Fibonacci')
-                  return p.label.includes('LCS')
-                })}
-                disabled={isPlaying}
-              />
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">DP Parameters</div>
+            <InputPanel
+              value={inputValue}
+              onChange={setInputValue}
+              onSubmit={handleSubmit}
+              placeholder={
+                algoId === 'fibonacci'
+                  ? 'Enter N index (e.g. 10)'
+                  : 'Enter comma-separated words (e.g. apple, ape)'
+              }
+              label="DP PARAMETERS"
+              buttonText="LOAD VALUES"
+              presets={presets.dp.filter((p) => {
+                if (algoId === 'fibonacci') return p.label.includes('Fibonacci')
+                return p.label.includes('LCS')
+              })}
+              disabled={isPlaying}
+            />
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={dpPseudocode[algoId]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={dpPseudocode[algoId]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={complexities[algoId]} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities[algoId]} />
+          </div>
         </div>
       </div>
     </div>

@@ -94,55 +94,46 @@ export default function BacktrackingVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        {/* Board Canvas */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="panel" style={{ flex: 1 }}>
-            <div className="panel-header">
-              <span className="panel-title">
-                N-Queens Board ({n}×{n})
-              </span>
-              <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
-                <span style={{ color: 'var(--accent)' }}>♛ Placed: {queensPlaced}</span>
-                {solutions > 0 && (
-                  <span style={{ color: 'var(--success, #48c78e)' }}>✅ Solutions: {solutions}</span>
-                )}
-              </div>
+        {/* ── LEFT: Board Canvas & Playback ───────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {board.map((row, ri) => (
+                <div key={ri} style={{ display: 'flex', gap: 2 }}>
+                  {row.map((cell, ci) => (
+                    <QueenCell
+                      key={ci}
+                      row={ri} col={ci} n={n}
+                      value={cell}
+                      isActive={isActiveCell(ri, ci)}
+                      isBad={isBadCell(ri, ci)}
+                    />
+                  ))}
+                </div>
+              ))}
             </div>
-            <div className="panel-body" style={{ display: 'flex', justifyContent: 'center', padding: 20 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {board.map((row, ri) => (
-                  <div key={ri} style={{ display: 'flex', gap: 2 }}>
-                    {row.map((cell, ci) => (
-                      <QueenCell
-                        key={ci}
-                        row={ri} col={ci} n={n}
-                        value={cell}
-                        isActive={isActiveCell(ri, ci)}
-                        isBad={isBadCell(ri, ci)}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: 16, padding: '0 4px', flexWrap: 'wrap' }}>
+              {[
+                { color: 'rgba(72, 199, 142, 0.5)',  label: '♛ Queen placed' },
+                { color: 'rgba(99, 179, 237, 0.4)',  label: '🔍 Trying' },
+                { color: 'rgba(245, 101, 101, 0.3)', label: '⚠️ Conflict / Backtrack' },
+              ].map(({ color, label }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+                  <div style={{ width: 12, height: 12, background: color, borderRadius: 2 }} />
+                  {label}
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: 16, padding: '0 4px', flexWrap: 'wrap' }}>
-            {[
-              { color: 'rgba(72, 199, 142, 0.5)',  label: '♛ Queen placed' },
-              { color: 'rgba(99, 179, 237, 0.4)',  label: '🔍 Trying' },
-              { color: 'rgba(245, 101, 101, 0.3)', label: '⚠️ Conflict / Backtrack' },
-            ].map(({ color, label }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-                <div style={{ width: 16, height: 16, background: color, borderRadius: 3 }} />
-                {label}
-              </div>
-            ))}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
+          <div className="viz-step-section">
+            {currentFrame ? (
               <div className="step-bar-desc">
                 {currentFrame.action === 'FOUND'      && '🎉 '}
                 {currentFrame.action === 'NOT_FOUND'  && '⚠️ '}
@@ -150,52 +141,64 @@ export default function BacktrackingVisualizer({ onStatusChange }) {
                 {currentFrame.action === 'STEP_LABEL' && '↩️ '}
                 {currentFrame.description}
               </div>
-            </div>
-          )}
-
-          <PlaybackControls playback={playback} />
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Set N and click Solve N-Queens to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header"><span className="panel-title">Inputs</span></div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <div className="input-label">N (board size)</div>
-                <input className="input-field" type="number" min="1" max="10"
-                  value={inputN}
-                  onChange={(e) => setInputN(e.target.value)}
-                  placeholder="e.g. 5" disabled={isPlaying} />
-              </div>
-              <button className="btn btn-primary"
-                onClick={() => { const size = parseInt(inputN, 10) || 5; setN(size); handleRun(size) }}
-                disabled={isPlaying}>
-                SOLVE N-QUEENS
-              </button>
-              <div>
-                <div className="input-label">PRESETS</div>
-                <div className="preset-row">
-                  {presets.backtracking.map((p) => (
-                    <button key={p.label} type="button" className="preset-btn"
-                      onClick={() => { const s = parseInt(p.value, 10); setN(s); setInputN(p.value); handleRun(s) }}
-                      disabled={isPlaying}>
-                      {p.label}
-                    </button>
-                  ))}
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>BOARD SIZE (N)</span>
+                  <input className="input-field" type="number" min="1" max="10"
+                    style={{ padding: '6px 10px', fontSize: 13, marginTop: 2 }}
+                    value={inputN}
+                    onChange={(e) => setInputN(e.target.value)}
+                    placeholder="e.g. 5" disabled={isPlaying} />
                 </div>
+                <button className="btn btn-primary btn-sm"
+                  style={{ marginTop: 14 }}
+                  onClick={() => { const size = parseInt(inputN, 10) || 5; setN(size); handleRun(size) }}
+                  disabled={isPlaying}>
+                  SOLVE
+                </button>
+              </div>
+              <div className="preset-row">
+                {presets.backtracking.map((p) => (
+                  <button key={p.label} type="button" className="preset-btn"
+                    onClick={() => { const s = parseInt(p.value, 10); setN(s); setInputN(p.value); handleRun(s) }}
+                    disabled={isPlaying}>
+                    {p.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame ? { n, queensPlaced, solutions } : null}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel pseudocode={backtrackingPseudocode.nqueens} codeLineIndex={currentFrame?.codeLineIndex ?? -1} />
+          </div>
 
-          <PseudocodePanel pseudocode={backtrackingPseudocode.nqueens} codeLineIndex={currentFrame?.codeLineIndex ?? -1} />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame ? { n, queensPlaced, solutions } : null}
+            />
+          </div>
 
-          <ComplexityCard complexity={complexities.nqueens} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={complexities.nqueens} />
+          </div>
         </div>
       </div>
     </div>

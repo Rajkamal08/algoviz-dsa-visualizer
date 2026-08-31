@@ -76,66 +76,76 @@ export default function AVLVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="panel" style={{ flex: 1 }}>
-            <div className="panel-header">
-              <span className="panel-title">AVL Tree Canvas</span>
-            </div>
-            <div className="panel-body" style={{ padding: 0, position: 'relative' }}>
-              <TreeRenderer
-                root={currentTreeRoot}
-                highlighted={currentFrame?.highlightedNodes || []}
-                activeId={activeNodeId}
-                foundId={currentFrame?.action === 'ROTATE' ? activeNodeId : null}
-              />
-            </div>
+        {/* ── LEFT: Canvas & Playback ────────────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero">
+            <TreeRenderer
+              root={currentTreeRoot}
+              highlighted={currentFrame?.highlightedNodes || []}
+              activeId={activeNodeId}
+              foundId={currentFrame?.action === 'ROTATE' ? activeNodeId : null}
+            />
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'ROTATE' && '⚙️ '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'ROTATE' && '⚙️ '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Enter a value and click Insert to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Insert Element</span>
-            </div>
-            <div className="panel-body">
-              <InputPanel
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSubmit}
-                placeholder="Enter key to insert (e.g. 15)"
-                label="INSERT KEY"
-                buttonText="INSERT"
-                presets={avlPresets}
-                disabled={isPlaying}
-              />
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <InputPanel
+              value={inputValue}
+              onChange={setInputValue}
+              onSubmit={handleSubmit}
+              placeholder="Enter key to insert (e.g. 15)"
+              label="INSERT KEY"
+              buttonText="INSERT"
+              presets={avlPresets}
+              disabled={isPlaying}
+            />
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={avlPseudocode.insert}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={avlPseudocode.insert}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={avlComplexities} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={avlComplexities} />
+          </div>
         </div>
       </div>
     </div>

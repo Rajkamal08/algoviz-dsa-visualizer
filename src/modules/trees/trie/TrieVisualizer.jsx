@@ -104,71 +104,81 @@ export default function TrieVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="panel" style={{ flex: 1 }}>
-            <div className="panel-header">
-              <span className="panel-title">Trie Tree Canvas</span>
-            </div>
-            <div className="panel-body" style={{ padding: 0, position: 'relative' }}>
-              <TreeRenderer
-                root={currentTreeRoot}
-                highlighted={currentFrame?.highlightedNodes || []}
-                activeId={activeNodeId}
-                foundId={isFound ? activeNodeId : null}
-              />
-            </div>
+        {/* ── LEFT: Canvas & Playback ────────────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero">
+            <TreeRenderer
+              root={currentTreeRoot}
+              highlighted={currentFrame?.highlightedNodes || []}
+              activeId={activeNodeId}
+              foundId={isFound ? activeNodeId : null}
+            />
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {isFound && '✨ '}
-                {isNotFound && '⚠️ '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {isFound && '✨ '}
+                  {isNotFound && '⚠️ '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Enter a word and run an operation to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Trie Controls</span>
-            </div>
-            <div className="panel-body">
-              <InputPanel
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={handleSubmit}
-                placeholder={
-                  opMode === 'insert'
-                    ? 'Enter word to insert (e.g. apple)'
-                    : 'Enter word to search (e.g. car)'
-                }
-                label="WORD VALUE"
-                buttonText={opMode.toUpperCase()}
-                presets={opMode === 'insert' ? triePresets : []}
-                disabled={isPlaying}
-              />
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            <InputPanel
+              value={inputValue}
+              onChange={setInputValue}
+              onSubmit={handleSubmit}
+              placeholder={
+                opMode === 'insert'
+                  ? 'Enter word to insert (e.g. apple)'
+                  : 'Enter word to search (e.g. car)'
+              }
+              label="WORD VALUE"
+              buttonText={opMode.toUpperCase()}
+              presets={opMode === 'insert' ? triePresets : []}
+              disabled={isPlaying}
+            />
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={triePseudocode[opMode]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={triePseudocode[opMode]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={trieComplexities} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={trieComplexities} />
+          </div>
         </div>
       </div>
     </div>

@@ -20,40 +20,25 @@ export default function ComplexityCard({ complexity }) {
     return null
   }
 
-  const { best, avg, worst, space, explanation } = complexity
+  const { best, avg, worst, space } = complexity
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title">Complexity Analysis</span>
+    <div className="complexity-compact-row">
+      <div className="complexity-chip" title="Best case time complexity">
+        <span className="complexity-chip-label">Best</span>
+        <span className="complexity-chip-value best">{best || '—'}</span>
       </div>
-      <div className="panel-body">
-        {/* Big-O Grid */}
-        <div className="complexity-grid">
-          <div className="complexity-item" title="Best case execution time complexity">
-            <div className="complexity-label">Best Time</div>
-            <div className="complexity-value best">{best || '—'}</div>
-          </div>
-          <div className="complexity-item" title="Average case execution time complexity">
-            <div className="complexity-label">Avg Time</div>
-            <div className="complexity-value avg">{avg || '—'}</div>
-          </div>
-          <div className="complexity-item" title="Worst case execution time complexity">
-            <div className="complexity-label">Worst Time</div>
-            <div className="complexity-value worst">{worst || '—'}</div>
-          </div>
-          <div className="complexity-item" title="Auxiliary space complexity complexity">
-            <div className="complexity-label">Space</div>
-            <div className="complexity-value space">{space || '—'}</div>
-          </div>
-        </div>
-
-        {/* Text Explanation */}
-        {explanation && (
-          <div className="complexity-explanation">
-            {explanation}
-          </div>
-        )}
+      <div className="complexity-chip" title="Average case time complexity">
+        <span className="complexity-chip-label">Avg</span>
+        <span className="complexity-chip-value avg">{avg || '—'}</span>
+      </div>
+      <div className="complexity-chip" title="Worst case time complexity">
+        <span className="complexity-chip-label">Worst</span>
+        <span className="complexity-chip-value worst">{worst || '—'}</span>
+      </div>
+      <div className="complexity-chip" title="Space complexity">
+        <span className="complexity-chip-label">Space</span>
+        <span className="complexity-chip-value space">{space || '—'}</span>
       </div>
     </div>
   )

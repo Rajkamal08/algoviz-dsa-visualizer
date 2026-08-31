@@ -103,100 +103,101 @@ export default function HeapVisualizer({ onStatusChange }) {
       </div>
 
       <div className="module-body">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Tree and Array side-by-side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, flex: 1 }}>
-            {/* Tree representation */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">Tree Representation</span>
-              </div>
-              <div className="panel-body" style={{ padding: 0, position: 'relative' }}>
-                <TreeRenderer
-                  root={currentTreeRoot}
-                  highlighted={highlighted}
-                  activeId={highlighted.length > 0 ? highlighted[0] : null}
-                  foundId={currentFrame?.action === 'SWAP' ? highlighted[1] : null}
-                />
-              </div>
+        {/* ── LEFT: Canvas & Playback ────────────────────────── */}
+        <div className="viz-canvas-area">
+          <div className="viz-canvas-hero" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ position: 'relative', height: '100%', minHeight: 0 }}>
+              <TreeRenderer
+                root={currentTreeRoot}
+                highlighted={highlighted}
+                activeId={highlighted.length > 0 ? highlighted[0] : null}
+                foundId={currentFrame?.action === 'SWAP' ? highlighted[1] : null}
+              />
             </div>
-
-            {/* Array representation */}
-            <div className="panel">
-              <div className="panel-header">
-                <span className="panel-title">Array Representation</span>
-              </div>
-              <div className="panel-body" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-                <ArrayRenderer
-                  values={currentArray}
-                  highlighted={highlighted}
-                  compared={currentFrame?.action === 'COMPARE' ? highlighted : []}
-                  sorted={[]}
-                  pivot={null}
-                />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: '100%', minHeight: 0, background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+              <ArrayRenderer
+                values={currentArray}
+                highlighted={highlighted}
+                compared={currentFrame?.action === 'COMPARE' ? highlighted : []}
+                sorted={[]}
+                pivot={null}
+              />
             </div>
           </div>
 
-          {currentFrame && (
-            <div className="step-bar">
-              <div className="step-bar-desc">
-                {currentFrame.action === 'SWAP' && '🔄 '}
-                {currentFrame.description}
-              </div>
-              {currentFrame.explanation && (
-                <div className="step-bar-explain">{currentFrame.explanation}</div>
-              )}
-            </div>
-          )}
+          <div className="viz-playback-section">
+            <PlaybackControls playback={playback} />
+          </div>
 
-          <PlaybackControls playback={playback} />
+          <div className="viz-step-section">
+            {currentFrame ? (
+              <>
+                <div className="step-bar-desc">
+                  {currentFrame.action === 'SWAP' && '🔄 '}
+                  {currentFrame.description}
+                </div>
+                {currentFrame.explanation && (
+                  <div className="step-bar-explain">{currentFrame.explanation}</div>
+                )}
+              </>
+            ) : (
+              <div className="step-bar-explain" style={{ color: 'var(--text-muted)' }}>
+                Select an operation and click to begin.
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'auto' }}>
-          <div className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Operation Controls</span>
-            </div>
-            <div className="panel-body">
-              {opMode === 'insert' ? (
-                <InputPanel
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSubmit={handleSubmit}
-                  placeholder="Enter value to insert (e.g. 25)"
-                  label="INSERT VALUE"
-                  buttonText="INSERT"
-                  presets={heapPresets}
-                  disabled={isPlaying}
-                />
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div className="input-label">Extract Max (Root Node)</div>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSubmit}
-                    disabled={isPlaying || currentArray.length === 0}
-                  >
-                    👑 Extract Max Value
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* ── RIGHT: Info Panel ──────────────────────────────── */}
+        <div className="viz-info-panel">
+          <div className="viz-controls-section">
+            <div className="section-label">Execution Controls</div>
+            {opMode === 'insert' ? (
+              <InputPanel
+                value={inputValue}
+                onChange={setInputValue}
+                onSubmit={handleSubmit}
+                placeholder="Enter value to insert (e.g. 25)"
+                label="INSERT VALUE"
+                buttonText="INSERT"
+                presets={heapPresets}
+                disabled={isPlaying}
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                  disabled={isPlaying || currentArray.length === 0}
+                  style={{ width: '100%' }}
+                >
+                  👑 Extract Max Value
+                </button>
+              </div>
+            )}
           </div>
 
-          <StateInspector
-            metrics={currentFrame?.metrics}
-            stateSnapshot={currentFrame?.stateSnapshot}
-          />
+          <div className="viz-code-section">
+            <div className="section-label">Pseudocode</div>
+            <PseudocodePanel
+              pseudocode={heapPseudocode[opMode]}
+              codeLineIndex={currentFrame?.codeLineIndex ?? -1}
+            />
+          </div>
 
-          <PseudocodePanel
-            pseudocode={heapPseudocode[opMode]}
-            codeLineIndex={currentFrame?.codeLineIndex ?? -1}
-          />
+          <div className="viz-state-section">
+            <div className="section-label">State</div>
+            <StateInspector
+              metrics={currentFrame?.metrics}
+              stateSnapshot={currentFrame?.stateSnapshot}
+            />
+          </div>
 
-          <ComplexityCard complexity={heapComplexities} />
+          <div className="viz-complexity-section">
+            <div className="section-label">Complexity</div>
+            <ComplexityCard complexity={heapComplexities} />
+          </div>
         </div>
       </div>
     </div>

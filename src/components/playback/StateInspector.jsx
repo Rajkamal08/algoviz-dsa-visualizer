@@ -32,107 +32,72 @@ function renderSnapshotValue(value) {
  * }} props
  */
 export default function StateInspector({ metrics, stateSnapshot }) {
-  const metricEntries = metrics ? Object.entries(metrics) : []
+  const metricEntries = metrics ? Object.entries(metrics).filter(([key, val]) => val !== 0 || key === 'operations') : []
+  const stateKeys = stateSnapshot ? Object.keys(stateSnapshot).filter(k => !['root', 'nodes', 'edges', 'data'].includes(k) && stateSnapshot[k] !== undefined && stateSnapshot[k] !== null) : []
+
+  if (metricEntries.length === 0 && stateKeys.length === 0) {
+    return <div className="empty-copy" style={{ fontSize: 11 }}>Waiting for algorithm execution…</div>
+  }
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title">State Inspector</span>
-      </div>
-      <div className="panel-body">
-        {/* Performance Metrics Section */}
-        {metricEntries.length > 0 && (
-          <div className="inspector-section">
-            <div className="inspector-label">Performance Metrics</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {metricEntries.map(([key, val]) => {
-                if (val === 0 && key !== 'operations') return null; // Hide empty/irrelevant metrics
-                const label = key
-                  .replace(/([A-Z])/g, ' $1')
-                  .replace(/^./, (str) => str.toUpperCase())
+    <div className="state-inspector-content">
+      {/* Metrics Row */}
+      {metricEntries.length > 0 && (
+        <div className="inspector-metrics-compact">
+          {metricEntries.map(([key, val]) => {
+            const label = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, (str) => str.toUpperCase())
 
-                return (
-                  <div key={key} className="inspector-metric">
-                    <span className="inspector-metric-key">{label}</span>
-                    <span className="inspector-metric-value">{val}</span>
+            return (
+              <div key={key} className="inspector-metric-chip">
+                <span className="inspector-metric-chip-key">{label}</span>
+                <span className="inspector-metric-chip-val">{val}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Variables */}
+      {stateKeys.length > 0 && (
+        <div className="inspector-vars-compact">
+          {stateKeys.map((key) => {
+            const val = stateSnapshot[key]
+            const cleanedValue = renderSnapshotValue(val)
+            const isArray = Array.isArray(cleanedValue)
+
+            return (
+              <div key={key} className="inspector-var-compact-row">
+                <span className="inspector-var-key">{key}:</span>
+                {isArray ? (
+                  cleanedValue.length === 0 ? (
+                    <span className="inspector-token-empty">[]</span>
+                  ) : (
+                    <div className="inspector-token-list">
+                      {cleanedValue.map((item, idx) => (
+                        <span key={idx} className="inspector-token">
+                          {Array.isArray(item) ? `${item[0]}: ${item[1]}` : String(item)}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                ) : typeof cleanedValue === 'object' ? (
+                  <div className="inspector-token-list">
+                    {Object.entries(cleanedValue).map(([subKey, subVal]) => (
+                      <span key={subKey} className="inspector-token">
+                        {subKey}: {String(subVal)}
+                      </span>
+                    ))}
                   </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Algorithm State Variables Section */}
-        {stateSnapshot && Object.keys(stateSnapshot).length > 0 && (
-          <div className="inspector-section" style={{ marginTop: 18 }}>
-            <div className="inspector-label">Variables</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {Object.entries(stateSnapshot).map(([key, val]) => {
-                if (val === undefined || val === null) return null
-                if (['root', 'nodes', 'edges', 'data'].includes(key)) return null
-
-                const cleanedValue = renderSnapshotValue(val)
-                const isArray = Array.isArray(cleanedValue)
-
-                return (
-                  <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                      {key}
-                    </span>
-
-                    {/* Array/List Visualization */}
-                    {isArray ? (
-                      cleanedValue.length === 0 ? (
-                        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>empty</span>
-                      ) : (
-                        <div className="inspector-array">
-                          {cleanedValue.map((item, idx) => {
-                            // Map entries
-                            if (Array.isArray(item) && item.length === 2) {
-                              return (
-                                <div key={idx} className="inspector-token">
-                                  {String(item[0])}: {String(item[1])}
-                                </div>
-                              )
-                            }
-                            return (
-                              <div key={idx} className="inspector-token">
-                                {String(item)}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    ) : typeof cleanedValue === 'object' ? (
-                      /* Object key-value rendering */
-                      Object.keys(cleanedValue).length === 0 ? (
-                        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>empty</span>
-                      ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                          {Object.entries(cleanedValue).map(([subKey, subVal]) => (
-                            <div key={subKey} className="inspector-token">
-                              {subKey}: {String(subVal)}
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    ) : (
-                      /* Primitive value rendering */
-                      <div className="inspector-token" style={{ alignSelf: 'flex-start' }}>
-                        {String(cleanedValue)}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {(!metrics && (!stateSnapshot || Object.keys(stateSnapshot).length === 0)) && (
-          <div className="empty-copy">Inspector will load when algorithm starts.</div>
-        )}
-      </div>
+                ) : (
+                  <span className="inspector-var-single-val">{String(cleanedValue)}</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
